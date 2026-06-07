@@ -1,8 +1,13 @@
 import os
+import json
+from pathlib import Path
+
 import requests
 
 TOKEN = os.environ["TELEGRAM_TOKEN"]
 CHAT_ID = os.environ["CHAT_ID"]
+
+SENT_FILE = "sent_alerts.json"
 
 URL = "https://wahis.woah.org/api/v1/pi/event/filtered-list?language=en"
 
@@ -25,6 +30,20 @@ TARGET_COUNTRIES = {
     "Pakistan",
     "Brazil"
 }
+
+
+def load_sent():
+    if not Path(SENT_FILE).exists():
+        return []
+
+    with open(SENT_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def save_sent(data):
+    with open(SENT_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
 
 payload = {
     "animalTypes": [],
@@ -51,22 +70,29 @@ response.raise_for_status()
 
 data = response.json()
 
-events = []
+sent_alerts = load_sent()
+
+new_events = []
 
 for item in data.get("list", []):
 
     if item.get("country") not in TARGET_COUNTRIES:
         continue
 
-    events.append(item)
+    report_id = item["reportId"]
 
-if not events:
-    print("No matching events found")
+    if report_id in sent_alerts:
+        continue
+
+    new_events.append(item)
+
+if not new_events:
+    print("لا توجد تنبيهات جديدة")
     raise SystemExit()
 
 message = "🔴 إنذارات حيوانية جديدة\n\n"
 
-for item in events[:10]:
+for item in new_events[:10]:
 
     message += (
         f"الدولة: {item['country']}\n"
@@ -89,4 +115,11 @@ r = requests.post(
 )
 
 print("Telegram:", r.status_code)
-print("Events sent:", len(events))
+
+if r.status_code == 200:
+    for item in new_events:
+        sent_alerts.append(item["reportId"])
+
+    save_sent(sent_alerts)
+
+    print("تم حفظ التنبيهات المرسلة")
