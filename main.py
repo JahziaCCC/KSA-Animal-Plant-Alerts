@@ -11,6 +11,42 @@ SENT_FILE = "sent_alerts.json"
 
 URL = "https://wahis.woah.org/api/v1/pi/event/filtered-list?language=en"
 
+COUNTRIES_AR = {
+    "Saudi Arabia": "السعودية",
+    "Jordan": "الأردن",
+    "Iraq": "العراق",
+    "Kuwait": "الكويت",
+    "قطر": "قطر",
+    "Qatar": "قطر",
+    "Bahrain": "البحرين",
+    "United Arab Emirates": "الإمارات",
+    "Oman": "عُمان",
+    "Yemen": "اليمن",
+    "Sudan": "السودان",
+    "Ethiopia": "إثيوبيا",
+    "Somalia": "الصومال",
+    "Djibouti": "جيبوتي",
+    "Turkey": "تركيا",
+    "India": "الهند",
+    "Pakistan": "باكستان",
+    "Brazil": "البرازيل"
+}
+
+STATUS_AR = {
+    "On-going": "نشط",
+    "Resolved": "منتهي"
+}
+
+DISEASES_AR = {
+    "High pathogenicity avian influenza viruses (Inf. with) (poultry)": "إنفلونزا الطيور عالية الضراوة",
+    "Foot and mouth disease virus": "الحمى القلاعية",
+    "Rabies virus (Inf. with)": "داء الكلب",
+    "African swine fever virus (Inf. with)": "حمى الخنازير الإفريقية",
+    "Newcastle disease virus (Inf. with)": "مرض النيوكاسل",
+    "Lumpy skin disease virus (Inf. with)": "مرض الجلد العقدي",
+    "Peste des petits ruminants virus (Inf. with)": "طاعون المجترات الصغيرة"
+}
+
 TARGET_COUNTRIES = {
     "Saudi Arabia",
     "Jordan",
@@ -94,13 +130,30 @@ message = "🔴 إنذارات حيوانية جديدة\n\n"
 
 for item in new_events[:10]:
 
+    country = COUNTRIES_AR.get(
+        item["country"],
+        item["country"]
+    )
+
+    disease = DISEASES_AR.get(
+        item["disease"],
+        item["disease"]
+    )
+
+    status = STATUS_AR.get(
+        item["eventStatus"],
+        item["eventStatus"]
+    )
+
     message += (
-        f"الدولة: {item['country']}\n"
-        f"المرض: {item['disease']}\n"
+        f"🔴 إنذار حيواني جديد\n\n"
+        f"الدولة: {country}\n"
+        f"المرض: {disease}\n"
         f"رقم الحدث: {item['eventId']}\n"
-        f"الحالة: {item['eventStatus']}\n"
+        f"الحالة: {status}\n"
         f"التاريخ: {item['submissionDate'][:10]}\n"
         f"المصدر: WOAH\n\n"
+        f"━━━━━━━━━━━━━━\n\n"
     )
 
 telegram_url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
