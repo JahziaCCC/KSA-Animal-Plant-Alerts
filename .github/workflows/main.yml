@@ -1,4 +1,4 @@
-name: Test Telegram
+name: WOAH Test
 
 on:
   workflow_dispatch:
@@ -17,6 +17,3 @@ jobs:
       - run: pip install requests
 
       - run: python main.py
-        env:
-          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
-          CHAT_ID: ${{ secrets.CHAT_ID }}
