@@ -1,21 +1,16 @@
-import os
 import requests
 
-TOKEN = os.environ["TELEGRAM_TOKEN"]
-CHAT_ID = os.environ["CHAT_ID"]
+url = "https://wahis.woah.org/api/v1/pi/event/filtered-list?language=en"
 
-message = """
-🧪 رسالة اختبار
+response = requests.get(url, timeout=30)
 
-تم تشغيل KSA Animal & Plant Alerts بنجاح.
-"""
+print(response.status_code)
 
-url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
+data = response.json()
 
-requests.post(
-    url,
-    json={
-        "chat_id": CHAT_ID,
-        "text": message
-    }
-)
+print(data["totalSize"])
+
+for item in data["list"][:5]:
+    print(item["country"])
+    print(item["disease"])
+    print("-" * 50)
