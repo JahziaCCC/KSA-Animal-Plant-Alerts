@@ -22,6 +22,20 @@ TARGET_COUNTRIES = {
     "Brazil"
 }
 
+
+def classify_event(report_type, event_status):
+    if report_type == "IN":
+        return "new_outbreak"
+
+    if report_type == "FUR":
+        return "update"
+
+    if str(event_status).lower() == "resolved":
+        return "closed"
+
+    return "update"
+
+
 def fetch_events():
     response = requests.get(URL, timeout=30)
     response.raise_for_status()
@@ -32,18 +46,35 @@ def fetch_events():
 
     for item in data.get("list", []):
 
-        if item["country"] not in TARGET_COUNTRIES:
+        country = item.get("country")
+
+        if country not in TARGET_COUNTRIES:
             continue
 
         events.append({
             "source": "WOAH",
-            "report_id": item["reportId"],
-            "event_id": item["eventId"],
-            "country": item["country"],
-            "disease": item["disease"],
-            "report_type": item["reportType"],
-            "status": item["eventStatus"],
-            "submission_date": item["submissionDate"]
+            "report_id": item.get("reportId"),
+            "event_id": item.get("eventId"),
+            "country": country,
+            "disease": item.get("disease"),
+            "report_type": item.get("reportType"),
+            "event_status": item.get("eventStatus"),
+            "submission_date": item.get("submissionDate"),
+            "reason": item.get("reason"),
+            "category": classify_event(
+                item.get("reportType"),
+                item.get("eventStatus")
+            )
         })
 
     return events
+
+
+if __name__ == "__main__":
+    events = fetch_events()
+
+    print(f"\nFound {len(events)} matching events\n")
+
+    for event in events:
+        print("=" * 80)
+        print(event)
