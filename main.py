@@ -1,16 +1,46 @@
 import requests
+import json
 
-url = "https://wahis.woah.org/api/v1/pi/event/filtered-list?language=en"
+URL = "https://wahis.woah.org/api/v1/pi/event/filtered-list?language=en"
 
-response = requests.get(url, timeout=30)
+payload = {
+    "animalTypes": [],
+    "countries": [],
+    "eventIds": [],
+    "eventStartDate": None,
+    "eventStatuses": [],
+    "firstDiseases": [],
+    "pageNumber": 0,
+    "pageSize": 10,
+    "reasons": [],
+    "reportIds": [],
+    "reportStatuses": [],
+    "reportTypes": ["IN"],
+    "secondDiseases": [],
+    "sortColumn": "submissionDate",
+    "sortOrder": "desc",
+    "submissionDate": None,
+    "typeStatuses": []
+}
 
-print(response.status_code)
+response = requests.post(
+    URL,
+    json=payload,
+    timeout=30
+)
+
+print("STATUS:", response.status_code)
 
 data = response.json()
 
-print(data["totalSize"])
+print("TOTAL:", data.get("totalSize"))
 
-for item in data["list"][:5]:
-    print(item["country"])
-    print(item["disease"])
-    print("-" * 50)
+print("\nLATEST EVENTS\n")
+
+for item in data.get("list", []):
+    print("=" * 60)
+    print("Country:", item.get("country"))
+    print("Disease:", item.get("disease"))
+    print("Report Type:", item.get("reportType"))
+    print("Event ID:", item.get("eventId"))
+    print("Date:", item.get("submissionDate"))
