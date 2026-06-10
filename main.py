@@ -16,7 +16,6 @@ COUNTRIES_AR = {
     "Jordan": "الأردن",
     "Iraq": "العراق",
     "Kuwait": "الكويت",
-    "قطر": "قطر",
     "Qatar": "قطر",
     "Bahrain": "البحرين",
     "United Arab Emirates": "الإمارات",
@@ -44,7 +43,13 @@ DISEASES_AR = {
     "African swine fever virus (Inf. with)": "حمى الخنازير الإفريقية",
     "Newcastle disease virus (Inf. with)": "مرض النيوكاسل",
     "Lumpy skin disease virus (Inf. with)": "مرض الجلد العقدي",
-    "Peste des petits ruminants virus (Inf. with)": "طاعون المجترات الصغيرة"
+    "Peste des petits ruminants virus (Inf. with)": "طاعون المجترات الصغيرة",
+    "Rift Valley fever virus": "حمى الوادي المتصدع",
+    "Bluetongue virus": "مرض اللسان الأزرق",
+    "Camelpox virus": "جدري الإبل",
+    "Sheep pox and goat pox virus": "جدري الأغنام والماعز",
+    "Middle East respiratory syndrome coronavirus (MERS-CoV)": "متلازمة الشرق الأوسط التنفسية",
+    "West Nile fever virus": "حمى غرب النيل"
 }
 
 TARGET_COUNTRIES = {
@@ -93,7 +98,7 @@ payload = {
     "reasons": [],
     "reportIds": [],
     "reportStatuses": [],
-    "reportTypes": ["IN"],
+    "reportTypes": ["IN", "FUR", "FR"],
     "secondDiseases": [],
     "sortColumn": "submissionDate",
     "sortOrder": "desc",
@@ -115,9 +120,9 @@ for item in data.get("list", []):
     if item.get("country") not in TARGET_COUNTRIES:
         continue
 
-    report_id = item["reportId"]
+    unique_id = f"{item['reportId']}_{item['reportType']}"
 
-    if report_id in sent_alerts:
+    if unique_id in sent_alerts:
         continue
 
     new_events.append(item)
@@ -126,7 +131,7 @@ if not new_events:
     print("لا توجد تنبيهات جديدة")
     raise SystemExit()
 
-message = "🔴 إنذارات حيوانية جديدة\n\n"
+message = ""
 
 for item in new_events[:10]:
 
@@ -145,8 +150,26 @@ for item in new_events[:10]:
         item["eventStatus"]
     )
 
+    report_type = item.get("reportType", "")
+
+    if report_type == "IN":
+        icon = "🔴"
+        title = "إنذار حيواني جديد"
+
+    elif report_type == "FUR":
+        icon = "🟠"
+        title = "تحديث رسمي"
+
+    elif report_type == "FR":
+        icon = "🟢"
+        title = "تقرير نهائي / احتواء"
+
+    else:
+        icon = "⚪"
+        title = report_type
+
     message += (
-        f"🔴 إنذار حيواني جديد\n\n"
+        f"{icon} {title}\n\n"
         f"الدولة: {country}\n"
         f"المرض: {disease}\n"
         f"رقم الحدث: {item['eventId']}\n"
@@ -170,8 +193,10 @@ r = requests.post(
 print("Telegram:", r.status_code)
 
 if r.status_code == 200:
+
     for item in new_events:
-        sent_alerts.append(item["reportId"])
+        unique_id = f"{item['reportId']}_{item['reportType']}"
+        sent_alerts.append(unique_id)
 
     save_sent(sent_alerts)
 
