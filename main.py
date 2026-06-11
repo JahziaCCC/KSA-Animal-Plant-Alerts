@@ -33,7 +33,9 @@ COUNTRIES_AR = {
 
 STATUS_AR = {
     "On-going": "نشط",
-    "Resolved": "منتهي"
+    "Resolved": "منتهي",
+    "Stable": "مستقر",
+    "Closed": "مغلق"
 }
 
 DISEASES_AR = {
@@ -140,9 +142,11 @@ for item in new_events[:10]:
         item["country"]
     )
 
+    disease_raw = item["disease"].strip()
+
     disease = DISEASES_AR.get(
-        item["disease"],
-        item["disease"]
+        disease_raw,
+        disease_raw
     )
 
     status = STATUS_AR.get(
